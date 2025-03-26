@@ -4,14 +4,31 @@ from sklearn.utils import check_random_state
 
 class SeedInitiation:
     
+    """
+    class to generate the initial values (or seeds) of cluster centers
+    """
+    
     def __init__(self, n_clusters, seed_initiation, random_state):
         
         self.n_clusters = n_clusters
         self.seed_initiation = seed_initiation
+        self.random_state = check_random_state(random_state)
         
     def generate_cluster_centers(self, **kwargs):
         
-        pass
+        pass 
+    
+    def __recommended_method(self, anchor=None):
+        
+        if anchor is None:
+            arr = self.random_state.uniform(low=-1, high=1, 
+                                            size=(self.n_features, 
+                                                  self.n_features))
+        else:
+            arr = self.random_state.uniform(low=-1, high=1, 
+                                            size=(self.n_features-1, 
+                                                  self.n_features))
+            arr = np.r_[np.reshape(anchor, (1,self.n_features)), arr]
 
 class Clustering(SeedInitiation):
     
