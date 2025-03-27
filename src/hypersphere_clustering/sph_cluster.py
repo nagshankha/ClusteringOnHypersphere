@@ -20,15 +20,25 @@ class SeedInitiation:
     
     def __recommended_method(self, anchor=None):
         
+        # Create a basis set spanning n_feature dimensional vector space
+        
         if anchor is None:
-            arr = self.random_state.uniform(low=-1, high=1, 
+            basis = self.random_state.uniform(low=-1, high=1, 
                                             size=(self.n_features, 
                                                   self.n_features))
         else:
-            arr = self.random_state.uniform(low=-1, high=1, 
+            basis = self.random_state.uniform(low=-1, high=1, 
                                             size=(self.n_features-1, 
                                                   self.n_features))
-            arr = np.r_[np.reshape(anchor, (1,self.n_features)), arr]
+            basis = np.r_[np.reshape(anchor, (1,self.n_features)), basis]
+            
+        basis = normalize(basis)
+        orthonormal_basis = gram_schmidt(basis)
+        
+        
+        
+            
+            
 
 class Clustering(SeedInitiation):
     
@@ -71,6 +81,73 @@ class Clustering(SeedInitiation):
         return cluster_assignments
     
         
-
+def gram_schmidt(X):
+    
+    if np.shape(X) == 2:
+        n_rows, n_columns = np.shape(X)
+    else:
+        raise ValueError("X must be a 2D array")
+    
+    if n_rows != n_columns:
+        raise ValueError("X must be a square matrix")    
+    elif np.isclose(np.linalg.det(X), 0):
+        raise ValueError("X must not be a singular matrix")
+    else:
+        orthonormal_basis = np.ones(np.shape(X))
+        
+    for row in range(n_rows):
+        if row == 0:
+            orthonormal_basis[row] = X[row]/np.linalg.norm(X[row])
+        else:
+            orthonormal_basis[row] -= np.sum(np.dot(orthonormal_basis[:row], 
+                                                    orthonormal_basis[row])*
+                                             orthonormal_basis[:row].T, axis=1)
+            orthonormal_basis[row] /= np.linalg.norm(orthonormal_basis[row])
+            
+    return orthonormal_basis
+    
+    
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         
