@@ -178,7 +178,7 @@ def NCP_sq_lattice(n, m):
         step = step+1
         num = len(arr)
         
-    return np.array(arr[:m])
+    return normalize(arr[:m])
         
         
         
