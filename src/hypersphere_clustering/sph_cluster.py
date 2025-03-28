@@ -17,6 +17,7 @@ class SeedInitiation:
         
     def generate_initial_cluster_centers(self, X, cluster_init_params):
         
+        
         pass 
     
     def __recommended_method(self, X, anchor=None):
@@ -58,7 +59,18 @@ class Clustering(SeedInitiation):
         
     def fit(self, X, **cluster_init_params):
         
-        self.n_obs, self.n_features = np.shape(X)
+        if not (isinstance(X, np.ndarray) and np.issubdtype(X.dtype, np.floating)):
+            raise ValueError("X must be a floating numpy array")
+        elif not np.allclose(np.linalg.norm(X, axis=1), 1):
+            raise ValueError("X rows must be unit vectors")
+        else:
+            pass
+            
+        if np.shape(X) == 2:
+            self.n_obs, self.n_features = np.shape(X)
+        else:
+            raise ValueError("X must be a 2D array")
+        
         self.generate_initial_cluster_centers(X, cluster_init_params)
         cluster_centers = self.initial_cluster_centers
         self.cost_per_iter = []
@@ -94,6 +106,11 @@ def gram_schmidt(X):
     This function convert any arbitrary basis into an orthonormal basis of the 
     same span using Gram-Schmidt process
     """
+    
+    if not (isinstance(X, np.ndarray) and np.issubdtype(X.dtype, np.floating)):
+        raise ValueError("X must be a floating numpy array")
+    else:
+        pass
     
     if np.shape(X) == 2:
         n_rows, n_columns = np.shape(X)
