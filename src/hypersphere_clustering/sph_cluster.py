@@ -14,14 +14,13 @@ class SeedInitiation:
         self.seed_initiation = seed_initiation
         self.random_state = check_random_state(random_state)
         
-    def generate_cluster_centers(self, **kwargs):
+    def generate_cluster_centers(self, X, **kwargs):
         
         pass 
     
-    def __recommended_method(self, anchor=None):
+    def __recommended_method(self, X, anchor=None):
         
-        # Create a basis set spanning n_feature dimensional vector space
-        
+        # Creating a basis set spanning n_feature dimensional vector space        
         if anchor is None:
             basis = self.random_state.uniform(low=-1, high=1, 
                                             size=(self.n_features, 
@@ -33,8 +32,11 @@ class SeedInitiation:
             basis = np.r_[np.reshape(anchor, (1,self.n_features)), basis]
             
         basis = normalize(basis)
-        orthonormal_basis = gram_schmidt(basis)
         
+        # Converting the basis into an orthonormal basis of same span
+        orthonormal_basis = gram_schmidt(basis)
+        # Transforming X in the space of new orthonormal basis
+        transformed_X = np.dot(X, orthonormal_basis.T)
         
         
             
@@ -52,7 +54,7 @@ class Clustering(SeedInitiation):
     def fit(self, X):
         
         self.n_obs, self.n_features = np.shape(X)
-        self.generate_cluster_centers()
+        self.generate_cluster_centers(X)
         cluster_centers = self.initial_cluster_centers
         self.cost_per_iter = []
         
@@ -83,6 +85,11 @@ class Clustering(SeedInitiation):
         
 def gram_schmidt(X):
     
+    """
+    This function convert any arbitrary basis into an orthonormal basis of the 
+    same span using Gram-Schmidt process
+    """
+    
     if np.shape(X) == 2:
         n_rows, n_columns = np.shape(X)
     else:
@@ -105,9 +112,51 @@ def gram_schmidt(X):
             orthonormal_basis[row] /= np.linalg.norm(orthonormal_basis[row])
             
     return orthonormal_basis
+
+def NCP_sq_lattice(n, m):
     
+    """
+    This function list m non-collinear points on n-dimensional square lattice
+    """
     
+    from sympy.utilities.iterables import multiset_permutations, permute_signs
+    
+    num = 0
+    
+    arr0 = np.zeros((n,n))
+    arr0[np.tril_indices(n)] = 1
+    
+    arr1 = []
+    for i in range(n-1):
+        arr1.append(arr0[i]+arr0[(i+1):])
+    arr1 = np.concatenate(arr1)
+    
+    def func(arr0, arr1, f):
+        a = []
+        for r in arr0:
+            a.append((f*r)+arr1)
+        a = np.concatenate(a)
+        a = np.unique(a, axis=0)
+        return a
+    
+    step = 0; arr = []
+    while(num<=m):
+        if step == 0:
+            step_arr = arr0
+        elif step == 1:
+            step_arr = arr1
+        else:
+            step_arr = func(arr0, arr1, step-1)
+        for r in step_arr:
+            mp = list(multiset_permutations(list(r)))
+            for mp_i in mp:
+                p = list(permute_signs(mp_i))
+                arr += p[:int(len(p)/2)]
+                
+        step = step+1
+        num = len(arr)
         
+    return np.array(arr[:m])
         
         
         
