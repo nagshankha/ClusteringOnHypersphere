@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import normalize
 from sklearn.utils import check_random_state
 
@@ -38,8 +39,12 @@ class SeedInitiation:
         # Transforming X in the space of new orthonormal basis
         transformed_X = np.dot(X, orthonormal_basis.T)
         
-        
-            
+        proj_dirs = NCP_sq_lattice(self.n_feature, self.n_clusters)
+        mat = np.dot(proj_dirs, transformed_X.T)
+        seed_in_X_indices = np.c_[np.argmin(mat, axis=1), 
+                                  np.argmax(mat, axis=1)].flatten()
+        seed_in_X_indices = pd.unique(seed_in_X_indices)[:self.n_clusters]
+        self.initial_cluster_centers = X[seed_in_X_indices]
             
 
 class Clustering(SeedInitiation):
