@@ -15,7 +15,7 @@ class SeedInitiation:
         self.seed_initiation = seed_initiation
         self.random_state = check_random_state(random_state)
         
-    def generate_cluster_centers(self, X, **kwargs):
+    def generate_initial_cluster_centers(self, X, cluster_init_params):
         
         pass 
     
@@ -56,10 +56,10 @@ class Clustering(SeedInitiation):
         self.max_iter = max_iter
         self.cost_tolerance = cost_tolerance
         
-    def fit(self, X):
+    def fit(self, X, **cluster_init_params):
         
         self.n_obs, self.n_features = np.shape(X)
-        self.generate_cluster_centers(X)
+        self.generate_initial_cluster_centers(X, cluster_init_params)
         cluster_centers = self.initial_cluster_centers
         self.cost_per_iter = []
         
