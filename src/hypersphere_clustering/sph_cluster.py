@@ -44,8 +44,16 @@ class SeedInitiation:
         mat = np.dot(proj_dirs, transformed_X.T)
         seed_in_X_indices = np.c_[np.argmin(mat, axis=1), 
                                   np.argmax(mat, axis=1)].flatten()
-        seed_in_X_indices = pd.unique(seed_in_X_indices)[:self.n_clusters]
-        self.initial_cluster_centers = X[seed_in_X_indices]
+        seed_in_X_indices = pd.unique(seed_in_X_indices)
+        X0 = X[seed_in_X_indices]
+        mat2 = 1-np.dot(X0, X0.T)[1:]
+        prob = np.sum(mat2, axis=1)/np.sum(mat2)
+        self.initial_cluster_centers = np.r_[[X0[0]], 
+                                             X0[self.random_state.choice(
+                                                 np.arange(len(prob))+1, 
+                                                 size=self.n_clusters, 
+                                                 replace=False, 
+                                                 p=prob)]]
             
 
 class Clustering(SeedInitiation):
