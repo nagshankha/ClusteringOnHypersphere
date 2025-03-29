@@ -170,7 +170,7 @@ def NCP_sq_lattice(n, m):
         else:
             step_arr = func(arr0, arr1, step-1)
         for r in step_arr:
-            mp = list(multiset_permutations(list(r)))
+            mp = list(multiset_permutations(list(r)))[::-1]
             for mp_i in mp:
                 p = list(permute_signs(mp_i))
                 arr += p[:int(len(p)/2)]
