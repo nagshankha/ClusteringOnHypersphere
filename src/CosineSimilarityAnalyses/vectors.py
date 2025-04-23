@@ -1,10 +1,9 @@
 from sklearn.preprocessing import normalize
 import numpy as np
-import pandas as pd
 
 class Vectors:
 
-    def __init__(self, x):
+    def __init__(self, x: np.ndarray or Vectors):
         if isinstance(x, np.ndarray) and (x.ndim == 2) and 
                         np.issubdtype(x.dtype, np.floating):            
             self.data = normalize(x)
@@ -16,9 +15,15 @@ class Vectors:
             "numbers or an instance of Vectors.")
 
     def distance(self, other:Vectors=None) -> np.ndarray:
-        pass
+        if other is None:
+            return 0.5*(1-np.dot(self.data, self.data.T))
+        elif isinstance(other, Vectors):
+            return 0.5*(1-np.dot(self.data, other.data.T))
+        else:
+            raise ValueError("Invalid input type. "+
+            "Expected an instance of Vectors or None.")
 
-    def __getitem__(self, index):
+   def __getitem__(self, index):
         if len(index) == 2:
             return self.data[index[0], index[1]]
         elif len(index) == 1:
@@ -26,12 +31,6 @@ class Vectors:
         else:
             raise ValueError("Invalid index. Expected a 1-tuple or 2-tuple")
 
-    def __iter__():
-        pass
-
-    def __next__():
-        pass
-        
     def __setattr__(self, name, value):
 
         if name == 'data':
