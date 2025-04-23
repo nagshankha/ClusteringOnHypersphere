@@ -52,14 +52,53 @@ class Vectors:
 
         Returns:
             np.ndarray: A matrix of cosine distances.
+
+        Raises:
+            ValueError: If the input 'other' is not a Vectors object or if 
+                        the two Vectors objects have a different number of 
+                        features (dimensionality).
         """
         if other is None:
             return 0.5*(1-np.dot(self.data, self.data.T))
         elif isinstance(other, Vectors):
-            return 0.5*(1-np.dot(self.data, other.data.T))
+            if other.n_features == self.n_features:
+                return 0.5*(1-np.dot(self.data, other.data.T))
+            else:
+                raise ValueError('Vectors whose distances are to be computed '+
+                                 'must have the same number of features.')
         else:
             raise ValueError("Invalid input type. "+
             "Expected an instance of Vectors or None.")
+
+    def __add__(self, other:Vectors) -> Vectors:
+        """
+        Adds two Vectors objects together by vertically stacking their data arrays.
+
+        This operation effectively concatenates the vectors from 'self' and 
+        'other', resulting in a new Vectors object that contains all the 
+        vectors from both input objects.
+
+        Args:
+            other (Vectors): The Vectors object to add to this one.
+
+        Returns:
+            Vectors: A new Vectors object containing the combined vectors from 
+                     both input objects.
+
+        Raises:
+            ValueError: If the input 'other' is not a Vectors object or if 
+                        the two Vectors objects have a different number of 
+                        features (dimensionality).
+        """
+        if isinstance(other, Vectors):
+            if other.n_features == self.n_features:
+                return Vectors(np.vstack(self.data, other.data))
+            else:
+                raise ValueError('Vectors to be combined (or here "added") must '+
+                                 'have the same number of features.')
+        else:
+            raise ValueError("Invalid input type. "+
+            "Expected an instance of Vectors.")
 
     def __getitem__(self, index):
         """
