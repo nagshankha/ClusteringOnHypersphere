@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.preprocessing import normalize
 from sklearn.utils import check_random_state
 from scipy.stats import truncnorm
+from vectors import Vectors
 
 class GeneratePointClusters:
 
@@ -86,7 +87,10 @@ class GeneratePointClusters:
         elif name == 'cluster_radii':
             if isinstance(value, np.ndarray) and (value.ndim == 1) and 
                         np.issubdtype(value.dtype, np.floating):
-                self.__dict__[name] = value
+                if np.all(value<np.pi):
+                    self.__dict__[name] = value
+                else:
+                    raise ValueError("All cluster radii must be less than pi.")
             else:
                 raise ValueError("cluster_radii attribute of GeneratePointClusters "+
                 "must be a 1D numpy array of floats.")
