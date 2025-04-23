@@ -8,7 +8,6 @@ class GeneratePointClusters:
     def __init__(self, cluster_centers, cluster_sizes, 
                             cluster_radii, random_state):
         self.cluster_centers = cluster_centers
-        self.n_clusters, self.dim = np.shape(self.cluster_centers) # dim cannot be less than 2.. add exception in __setattr__
         self.cluster_sizes = cluster_sizes
         self.cluster_radii = cluster_radii
         self.random_state = check_random_state(random_state)
@@ -45,12 +44,61 @@ class GeneratePointClusters:
         if np.allclose(np.linalg.norm(points, axis=1), 1):
             return points
         else:
-            raise RuntimeError("All generated points must lie on unit hypersphere")
-                
-
-
+            raise RuntimeError("All generated points must lie on unit hypersphere")        
 
     def __setattr__(self, name, value):
 
-        pass
+        if name == 'cluster_centers':
+            if isinstance(value, np.ndarray) and (value.ndim == 2) and 
+                        value.shape[1] >= 2 and 
+                        np.issubdtype(value.dtype, np.floating) and
+                        np.allclose(np.linalg.norm(value, axis=1), 1):
+                self.__dict__[name] = value
+                self.n_clusters, self.dim = np.shape(value)
+            else:
+                raise ValueError("cluster_centers attribute of GeneratePointClusters "+
+                "must be a 2D numpy array with each row being an unit vector. "+
+                "Each vector must also have more than or equal to 2 features "+
+                "(or dimensions)")
+
+        elif name == 'n_clusters':
+            if value == np.shape(self.cluster_centers)[0]:
+                self.__dict__[name] = value
+            else:
+                raise ValueError("n_clusters attribute of GeneratePointClusters "+
+                "must be equal to the number of rows in the cluster_centers attribute.")
+
+        elif name == 'dim':
+            if value == np.shape(self.cluster_centers)[1]:
+                self.__dict__[name] = value
+            else:
+                raise ValueError("dim attribute of GeneratePointClusters "+
+                "must be equal to the number of columns in the cluster_centers attribute.")
+
+        elif name == 'cluster_sizes':
+            if isinstance(value, np.ndarray) and (value.ndim == 1) and 
+                        np.issubdtype(value.dtype, np.integer):
+                self.__dict__[name] = value
+            else:
+                raise ValueError("cluster_sizes attribute of GeneratePointClusters "+
+                "must be a 1D numpy array of integers.")
+
+        elif name == 'cluster_radii':
+            if isinstance(value, np.ndarray) and (value.ndim == 1) and 
+                        np.issubdtype(value.dtype, np.floating):
+                self.__dict__[name] = value
+            else:
+                raise ValueError("cluster_radii attribute of GeneratePointClusters "+
+                "must be a 1D numpy array of floats.")
+
+        elif name == 'random_state':
+            if isinstance(value, np.random.RandomState):
+                self.__dict__[name] = value
+            else:
+                raise ValueError("random_state attribute of GeneratePointClusters "+
+                "must be an instance of np.random.RandomState.")
+
+        else:
+            self.__dict__[name] = value
+
 
