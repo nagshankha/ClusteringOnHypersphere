@@ -2,7 +2,29 @@ from sklearn.preprocessing import normalize
 import numpy as np
 
 class Vectors:
+    """
+    A class for handling vectors, particularly useful for cosine similarity analysis.
 
+    The `Vectors` class is designed to store and manipulate a set of vectors. 
+    It ensures that the vectors are normalized (unit vectors) upon initialization. 
+    It also provides methods for calculating the distance (based on cosine 
+    similarity) between vectors and for accessing and setting vector elements.
+
+    Attributes:
+        data (np.ndarray): A 2D numpy array where each row represents a normalized vector.
+        n_samples (int): The number of vectors (rows) in the data array.
+        n_features (int): The dimensionality of the vectors (columns) in the data array.
+
+    Methods:
+        __init__(self, x): Initializes a Vectors object.
+        distance(self, other=None): Computes the cosine distance between vectors.
+        __getitem__(self, index): Retrieves vector(s) or element(s) at given ind(ices).
+        __setattr__(self, name, value): Sets an attribute of the Vectors object.
+
+    Raises:
+        ValueError: If the input data is invalid or if the attributes are set incorrectly.
+    """
+    
     def __init__(self, x: np.ndarray or Vectors):
         if isinstance(x, np.ndarray) and (x.ndim == 2) and 
                         np.issubdtype(x.dtype, np.floating):            
@@ -15,6 +37,22 @@ class Vectors:
             "numbers or an instance of Vectors.")
 
     def distance(self, other:Vectors=None) -> np.ndarray:
+        """
+        Calculates the cosine distance between vectors. The distances are in 
+        the range [0, 1], with 0 indicating identical vectors, 0.5 indicating 
+        orthogonal vectors and 1 indicating vectors is opposite directions.
+
+        If no 'other' Vectors object is provided, it calculates the pairwise 
+        cosine distances between all vectors in the object. 
+        If an 'other' Vectors object is provided, it computes the cosine 
+        distances between each vector in self and each vector in 'other'.
+
+        Args:
+            other (Vectors, optional): Another Vectors object. Defaults to None.
+
+        Returns:
+            np.ndarray: A matrix of cosine distances.
+        """
         if other is None:
             return 0.5*(1-np.dot(self.data, self.data.T))
         elif isinstance(other, Vectors):
@@ -23,15 +61,42 @@ class Vectors:
             raise ValueError("Invalid input type. "+
             "Expected an instance of Vectors or None.")
 
-   def __getitem__(self, index):
+    def __getitem__(self, index):
+        """
+        Retrieves vector(s) or specific element(s) from the data array.
+
+        Supports two types of indexing:
+        - A 2-tuple (row, column) to retrieve a single element.
+        - A 1-tuple (row) to retrieve an entire row (vector) as a new Vectors object.
+
+        Args:
+            index (tuple): The index to access. It can be a 1-tuple or a 2-tuple of 
+                           integers (or slices) representing the row and column indices.
+
+        Returns:
+            np.ndarray or Vectors: If a 2-tuple is given, returns the value(s) at 
+                                   that position.
+                                   If a 1-tuple is given, returns a new Vectors 
+                                   object representing the row(s).
+
+        Raises:
+            ValueError: If the index is not a 1-tuple or a 2-tuple.
+        """
         if len(index) == 2:
             return self.data[index[0], index[1]]
         elif len(index) == 1:
             return Vectors(self.data[index[0]])
         else:
             raise ValueError("Invalid index. Expected a 1-tuple or 2-tuple")
-
+    
     def __setattr__(self, name, value):
+        """
+        Sets the attributes of the Vectors object after performing some checks.
+
+        Args:
+            name (str): The name of the attribute to set.
+            value: The value to set the attribute to.
+        """
 
         if name == 'data':
             if isinstance(x, np.ndarray) and (x.ndim == 2) and 
