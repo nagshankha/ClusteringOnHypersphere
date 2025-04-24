@@ -59,7 +59,10 @@ class Vectors:
                         features (dimensionality).
         """
         if other is None:
-            return 0.5*(1-np.dot(self.data, self.data.T))
+            triu_indices = np.triu_indices(self.n_samples, k=1)
+            return 0.5*(1-np.sum(self.data[triu_indices[0]]*
+                                 self.data[triu_indices[1]],
+                                 axis=1))
         elif isinstance(other, Vectors):
             if other.n_features == self.n_features:
                 return 0.5*(1-np.dot(self.data, other.data.T))
