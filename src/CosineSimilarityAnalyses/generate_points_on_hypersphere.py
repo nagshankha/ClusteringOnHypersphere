@@ -13,8 +13,7 @@ class GeneratePointClusters:
         self.cluster_radii = cluster_radii
         self.random_state = check_random_state(random_state)
 
-    def generate_points(self, truncate_at_radius = True):
-        points = []
+    def generate_points(self, truncate_at_radius = True) -> Vectors:
         for clusterID in range(self.n_clusters):
             cluster_center = self.cluster_centers[clusterID]
             cluster_radius = self.cluster_radii[clusterID]
@@ -38,14 +37,12 @@ class GeneratePointClusters:
                     np.sqrt((c2**2*cluster_center[0]**2) - 
                             (sum12*(c2**2 - (c1*cluster_center[1]**2))))/sum12)
             x2 = (c2 - (x1*cluster_center[0]))/cluster_center[1]
-            points.append(np.c_[clusterID, x1, x2, mat])
+            if clusterID == 0:
+                points = Vectors(np.c_[x1, x2, mat], clusterID = clusterID)
+            else:
+                points += Vectors(np.c_[x1, x2, mat], clusterID = clusterID)
 
-        points = np.vstack(points)
-
-        if np.allclose(np.linalg.norm(points, axis=1), 1):
-            return points
-        else:
-            raise RuntimeError("All generated points must lie on unit hypersphere")        
+        return points    
 
     def __setattr__(self, name, value):
 
