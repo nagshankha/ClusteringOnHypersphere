@@ -25,7 +25,7 @@ class Vectors:
         ValueError: If the input data is invalid or if the attributes are set incorrectly.
     """
     
-    def __init__(self, x: np.ndarray or Vectors):
+    def __init__(self, x: np.ndarray or Vectors, **attributes):
         if isinstance(x, np.ndarray) and (x.ndim == 2) and 
                         np.issubdtype(x.dtype, np.floating):            
             self.data = normalize(x)
@@ -35,6 +35,11 @@ class Vectors:
             raise ValueError("Invalid input type. "+
             "Expected a 2D numpy array of floating-point "+
             "numbers or an instance of Vectors.")
+        self.set_of_optional_attributes = set([])
+        self.attributes = attributes
+
+    def add_attributes(self, attributes):
+        self.attributes = attributes
 
     def distance(self, other:Vectors=None) -> np.ndarray:
         """
@@ -98,8 +103,36 @@ class Vectors:
                         features (dimensionality).
         """
         if isinstance(other, Vectors):
+            if self.set_of_optional_attributes != other.set_of_optional_attributes:
+                raise ValueError('Vectors to be combined must have the same '+
+                                 'optional attributes. Following attributes are '+
+                                 'not present in either of the Vectors instances '+
+                                 'being added: '+
+                                 str(self.set_of_optional_attributes.symmetric_difference(
+                                     other.set_of_optional_attributes)))
+            else:
+                d=[]
+                for x in self.set_of_optional_attributes:
+                    if self.__dict__[x].ndim == other.__dict__[x].ndim:
+                        if (self.__dict__[x].ndim==2) and 
+                           (self.__dict__[x].shape[1] == 
+                            other.__dict__[x].shape[1]):
+                            d += [(x, np.vstack([self.__dict__[x], other.__dict__[x]]))]
+                        else:
+                            raise ValueError("Optional attribute arrays of either Vectors "+
+                                             "instances being added must have the same "+
+                                             "number of columns. Array shapes of attribute "+
+                                             f"{x} are {self.__dict__[x].shape} and "+
+                                             f"{other.__dict__[x].shape}.")
+                    else:
+                        raise ValueError("Optional attribute arrays of either Vectors "+
+                                         "instances being added must have the same "+
+                                         "dimensions. Array dimensions of attribute "+
+                                         f"{x} are {self.__dict__[x].ndim} and "+
+                                         f"{other.__dict__[x].ndim}.")
+                d = dict(d)
             if other.n_features == self.n_features:
-                return Vectors(np.vstack(self.data, other.data))
+                return Vectors(np.vstack([self.data, other.data]), **d)
             else:
                 raise ValueError('Vectors to be combined (or here "added") must '+
                                  'have the same number of features.')
@@ -131,7 +164,9 @@ class Vectors:
         if len(index) == 2:
             return self.data[index[0], index[1]]
         elif len(index) == 1:
-            return Vectors(self.data[index[0]])
+            d = dict([(x, self.__dict__[x][index[0]]) 
+                for x in self.set_of_optional_attributes])
+            return Vectors(self.data[index[0]], **d)
         else:
             raise ValueError("Invalid index. Expected a 1-tuple or 2-tuple")
     
@@ -152,21 +187,51 @@ class Vectors:
                 self.n_samples, self.n_features = np.shape(x)
             else:
                 raise ValueError("data attribute of Vectors instance "+
-                "must be a 2D numpy array with each row being an unit vector.")
+                                 "must be a 2D numpy array with each row "+
+                                 "being an unit vector.")
 
         elif name == 'n_samples':
             if value == np.shape(self.data)[0]:
                 self.__dict__[name] = value
             else:
                 raise ValueError("n_samples attribute of Vectors instance "+
-                "must be equal to the number of rows in the data attribute.")
+                                 "must be equal to the number of rows in the "+
+                                 "data attribute.")
 
         elif name == 'n_features':
             if value == np.shape(self.data)[1]:
                 self.__dict__[name] = value
             else:
                 raise ValueError("n_features attribute of Vectors instance "+
-                "must be equal to the number of columns in the data attribute.")
+                                 "must be equal to the number of columns in "+
+                                 "the data attribute.")
 
+        elif name == 'attributes':
+            if not isinstance(value, dict):
+                raise ValueError("Optional attributes to the Vectors instance "+
+                                 "must be a dictionary.")
+            for k in value:
+                if not isinstance(k, str):
+                    raise ValueError("Optional attribute names must be strings.")
+                if isinstance(value[k], np.ndarray) and (value[k].ndim in [1,2]) and
+                   (len(value[k])==self.n_samples):
+                    self.__dict__[k] = value[k]
+                else:
+                    raise ValueError("Optional attribute values must be 1D or 2D numpy "+
+                                     "arrays of the same length as the number of samples.")                    
+            self.set_of_optional_attributes.update(value.keys())
+
+        elif name == 'set_of_optional_attributes':
+            if isinstance(value, set):
+                if all([(isinstance(x, str) and hasattr(self, x)) 
+                        for x in value]):
+                    self.__dict__[name] = value
+                else:
+                    raise ValueError("Optional attribute names must be strings and "+
+                                     "must be entries of self.__dict__")
+            else:
+                raise ValueError("set_of_optional_attributes attribute of Vectors "+
+                                 "instance must be a set.")
+    
         else:
             self.__dict__[name] = value
