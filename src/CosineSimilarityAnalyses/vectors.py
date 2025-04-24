@@ -51,7 +51,11 @@ class Vectors:
             other (Vectors, optional): Another Vectors object. Defaults to None.
 
         Returns:
-            np.ndarray: A matrix of cosine distances.
+            - If 'other' is None, returns a 1D array of cosine distances between 
+              vectors in self. Distance are ordered in the 1D array as follows:
+              01, 02, 03, 04, ..., 12, 13, 14, ..., 23, 24, ..., 34, ...
+            - If 'other' is provided, returns a 2D array of cosine distances 
+              between each vector in self and each vector in 'other'. 
 
         Raises:
             ValueError: If the input 'other' is not a Vectors object or if 
