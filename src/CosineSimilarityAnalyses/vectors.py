@@ -117,7 +117,7 @@ class Vectors:
                         if (self.__dict__[x].ndim==2) and 
                            (self.__dict__[x].shape[1] == 
                             other.__dict__[x].shape[1]):
-                            d += [(x, np.vstack([self.__dict__[x], other.__dict__[x]]))]
+                            d += [(x, np.concatenate([self.__dict__[x], other.__dict__[x]]))]
                         else:
                             raise ValueError("Optional attribute arrays of either Vectors "+
                                              "instances being added must have the same "+
@@ -137,8 +137,7 @@ class Vectors:
                 raise ValueError('Vectors to be combined (or here "added") must '+
                                  'have the same number of features.')
         else:
-            raise ValueError("Invalid input type. "+
-            "Expected an instance of Vectors.")
+            raise ValueError("Invalid input type. Expected an instance of Vectors.")
 
     def __getitem__(self, index):
         """
