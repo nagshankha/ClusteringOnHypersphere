@@ -3,29 +3,58 @@ import numpy as np
 
 class Vectors:
     """
-    A class for handling vectors, particularly useful for cosine similarity analysis.
+    A class for handling vectors, particularly useful for cosine similarity analyses.
 
-    The `Vectors` class is designed to store and manipulate a set of vectors. 
+    The `Vectors` class is designed to store and manipulate a set of vectors and
+    optionally, any number of additional attributes related to these vectors. 
     It ensures that the vectors are normalized (unit vectors) upon initialization. 
     It also provides methods for calculating the distance (based on cosine 
-    similarity) between vectors and for accessing and setting vector elements.
+    similarity) between vectors, for accessing and setting vector elements, as well
+    as for combining multiple Vectors instances.
 
     Attributes:
-        data (np.ndarray): A 2D numpy array where each row represents a normalized vector.
+        data (np.ndarray): A 2D numpy array where each row is an unit vector.
         n_samples (int): The number of vectors (rows) in the data array.
         n_features (int): The dimensionality of the vectors (columns) in the data array.
+        Optional attributes (np.ndarray): Additional attributes related to the vectors
+                                          in the data array.
+        set_of_optional_attributes (set): Number of optional attributes. 
 
     Methods:
-        __init__(self, x): Initializes a Vectors object.
+        __init__(self, x, **attributes): Initializes a Vectors object with the given data vectors and 
+                             optional attributes.
+        add_attributes(self, attributes): Adds optional attributes to the Vectors object.
         distance(self, other=None): Computes the cosine distance between vectors.
+        __add__(self, other): Combines two Vectors objects together.
         __getitem__(self, index): Retrieves vector(s) or element(s) at given ind(ices).
         __setattr__(self, name, value): Sets an attribute of the Vectors object.
-
-    Raises:
-        ValueError: If the input data is invalid or if the attributes are set incorrectly.
     """
     
     def __init__(self, x: np.ndarray or Vectors, **attributes):
+        """
+        Initializes a Vectors object.
+
+        The constructor can take either a 2D numpy array or an existing Vectors
+        object as input. In the case of a numpy array, the vectors (rows) are 
+        normalized to unit length. Optional attributes related to these vectors
+        can also be provided.
+
+        Args:
+            x (np.ndarray or Vectors): A 2D numpy array of floating-point 
+                                       numbers where each row represents an 
+                                       unit vector, or an instance of Vectors.
+            **attributes: Keyword arguments representing additional attributes
+                          associated with the vectors.
+
+        Raises:
+            ValueError: If the input 'x' is not a 2D numpy array of 
+                        floating-point numbers or an instance of Vectors.
+            ValueError: if self.data is assigned a numpy array with rows 
+                        not normalized to unit length.
+            ValueError: if the optional attributes are not 1D or 2D numpy arrays.
+            ValueError: if the optional attributes do not have the same length as
+                        the number of samples.
+        """
         if isinstance(x, np.ndarray) and (x.ndim == 2) and 
                         np.issubdtype(x.dtype, np.floating):            
             self.data = normalize(x)
@@ -39,6 +68,27 @@ class Vectors:
         self.attributes = attributes
 
     def add_attributes(self, attributes):
+        """
+        Adds optional attributes to the Vectors object.
+
+        This method allows for the addition of extra data associated with each 
+        vector, such as labels or other metadata.
+
+        Args:
+            attributes (dict): A dictionary where keys are attribute names (strings)
+                               and values are numpy arrays of attribute values.
+                               These numpy arrays can be 1D or 2D.
+        
+        Returns:
+            None
+
+        Raises:
+            ValueError: if argument attributes is not a dictionary.
+            ValueError: if the keys of the attributes dictionary are not strings.
+            ValueError: if the optional attributes values are not 1D or 2D numpy arrays.
+            ValueError: if the optional attributes arrays do not have the same length as
+                        the number of samples.
+        """
         self.attributes = attributes
 
     def distance(self, other:Vectors=None) -> np.ndarray:
@@ -84,12 +134,21 @@ class Vectors:
 
     def __add__(self, other:Vectors) -> Vectors:
         """
-        Adds two Vectors objects together by vertically stacking their data arrays.
+        Combines two Vectors objects by vertically stacking their data arrays
+        and concatenating their optional attributes.
 
         This operation effectively concatenates the vectors from 'self' and 
         'other', resulting in a new Vectors object that contains all the 
-        vectors from both input objects.
-
+        vectors from both input objects. It also concatenates any optional 
+        attributes present in both objects.
+        Optional attributes are combined if they have the same name and their
+        arrays are compatible for concatenation.
+        
+        Note: optional attributes are combined only if:
+             - both Vectors instances have the same attributes' names, and 
+             - the optional attribute arrays have the same number of columns 
+               (in the case of 2D arrays).
+        
         Args:
             other (Vectors): The Vectors object to add to this one.
 
@@ -98,9 +157,15 @@ class Vectors:
                      both input objects.
 
         Raises:
-            ValueError: If the input 'other' is not a Vectors object or if 
-                        the two Vectors objects have a different number of 
-                        features (dimensionality).
+            ValueError: If:
+                        - the input 'other' is not a Vectors object, or
+                        - the two Vectors objects have a different number of 
+                          features (dimensionality), or
+                        - optional attributes are present in one Vectors instance
+                          but not in the other, or
+                        - the shape of the optional attributes arrays are not
+                          compatible for concatenation (in the case of 2D
+                          arrays)
         """
         if isinstance(other, Vectors):
             if self.set_of_optional_attributes != other.set_of_optional_attributes:
@@ -146,6 +211,7 @@ class Vectors:
         Supports two types of indexing:
         - A 2-tuple (row, column) to retrieve a single element.
         - A 1-tuple (row) to retrieve an entire row (vector) as a new Vectors object.
+          Corresponding optional attributes are also retrieved.
 
         Args:
             index (tuple): The index to access. It can be a 1-tuple or a 2-tuple of 
