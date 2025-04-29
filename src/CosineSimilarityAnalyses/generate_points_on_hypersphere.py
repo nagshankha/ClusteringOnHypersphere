@@ -38,9 +38,15 @@ class GeneratePointClusters:
                             (sum12*(c2**2 - (c1*cluster_center[1]**2))))/sum12)
             x2 = (c2 - (x1*cluster_center[0]))/cluster_center[1]
             if clusterID == 0:
-                points = Vectors(np.c_[x1, x2, mat], clusterID = clusterID)
+                points = Vectors(np.c_[x1, x2, mat], 
+                                 clusterID = clusterID*np.ones(cluster_size, 
+                                                               dtype=int),
+                                 pointID = np.arange(cluster_size))
             else:
-                points += Vectors(np.c_[x1, x2, mat], clusterID = clusterID)
+                points += Vectors(np.c_[x1, x2, mat], 
+                                  clusterID = clusterID*np.ones(cluster_size, 
+                                                               dtype=int),
+                                  pointID = np.arange(cluster_size))
 
         return points    
 
