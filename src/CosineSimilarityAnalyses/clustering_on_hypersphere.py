@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import normalize
 from sklearn.utils import check_random_state
+from utils import *
 
 class SeedInitiation:
     
@@ -15,8 +16,7 @@ class SeedInitiation:
         self.seed_initiation = seed_initiation
         self.random_state = check_random_state(random_state)
         
-    def generate_initial_cluster_centers(self, X, cluster_init_params):
-        
+    def generate_initial_cluster_centers(self, X, **cluster_init_params):        
         
         pass 
     
@@ -79,7 +79,7 @@ class Clustering(SeedInitiation):
         else:
             raise ValueError("X must be a 2D array")
         
-        self.generate_initial_cluster_centers(X, cluster_init_params)
+        self.generate_initial_cluster_centers(X, **cluster_init_params)
         cluster_centers = self.initial_cluster_centers
         self.cost_per_iter = []
         
