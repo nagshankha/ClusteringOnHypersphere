@@ -21,8 +21,8 @@ class Vectors:
         set_of_optional_attributes (set): Number of optional attributes. 
 
     Methods:
-        __init__(self, x, **attributes): Initializes a Vectors object with the given data vectors and 
-                             optional attributes.
+        __init__(self, x, **attributes): Initializes a Vectors object with the given data 
+                                         vectors and optional attributes.
         add_attributes(self, attributes): Adds optional attributes to the Vectors object.
         distance(self, other=None): Computes the cosine distance between vectors.
         __add__(self, other): Combines two Vectors objects together.
@@ -100,10 +100,55 @@ class Vectors:
         """
         return np.linalg.matrix_rank(self.data)
 
-    def convert_to_full_rank(self) -> Vectors:
+    def convert_to_full_rank(self, in_place = False) -> Vectors or None:
+        """
+        Converts the data array to a full-rank representation.
 
-        pass
+        This method uses Singular Value Decomposition (SVD) to transform the 
+        data array into a new representation that has full rank with reduced 
+        dimensionality. Note that this transformation is not unique.
 
+        Args:
+            in_place (bool, optional): If True, modifies the data array of the 
+                                       current Vectors object directly. If 
+                                       False, returns a new Vectors object with
+                                       the modified data array. Defaults to False.
+        Returns:
+            Vectors or None: If in_place is False, returns a new Vectors object 
+                             with the full-rank data array. If in_place is True,
+                             modifies the current object and returns None.
+        Raises:
+            AssertionError: If the number of zero-valued singular values does 
+                            not match the expected difference between the number
+                            of features and the rank of the data array.
+            AssertionError: If the singular values are not sorted with zeros 
+                            towards the end.
+        """
+
+        s,v = np.linalg.svd(self.data)[-2:]
+        zero_singular_values = np.isclose(s,0)
+        n_zero_singular_values = np.count_nonzero(zero_singular_values)
+        if n_zero_singular_values != (self.n_features-self.get_rank()):
+            raise AssertionError("The number of zero valued singular values "+
+                                f"({n_zero_singular_values}) " +
+                                f"must equal number of feature ({self.n_features}) "+
+                                f"minus the rank of data array ({self.get_rank()})." )
+        if not np.all(zero_singular_values[-n_zero_singular_values:]):
+            raise AssertionError("The singular values are not sorted. The zero values "+
+                                 "singular values are expected to be at the end")
+        new_data_arr = np.dot(self.data, v.T)
+        if np.allclose(new_data_arr[:,-n_zero_singular_values:], 0):
+            if in_place:
+                self.data = new_data_arr[:,:-n_zero_singular_values]
+                return None
+            else:
+                return Vectors(new_data_arr[:,:-n_zero_singular_values],
+                               **{k: self.__dict__[k] for k in 
+                                            self.set_of_optional_attributes})
+        else:
+            raise AssertionError(f"The last {n_zero_singular_values} columns of "+
+                                 "new_data_arr is expected to be zero. \n"+
+                                 f"new_data_arr = {new_data_arr}")
 
     def distance(self, other:Vectors=None) -> np.ndarray:
         """
