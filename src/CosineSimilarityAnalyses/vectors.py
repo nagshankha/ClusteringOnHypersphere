@@ -91,6 +91,20 @@ class Vectors:
         """
         self.attributes = attributes
 
+    def get_rank(self) -> int:
+        """
+        Returns the rank of the data array.
+
+        Returns:
+            int: The rank of the data array.
+        """
+        return np.linalg.matrix_rank(self.data)
+
+    def convert_to_full_rank(self) -> Vectors:
+
+        pass
+
+
     def distance(self, other:Vectors=None) -> np.ndarray:
         """
         Calculates the cosine distance between vectors. The distances are in 
